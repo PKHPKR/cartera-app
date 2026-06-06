@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarteraApp – Nuevo Préstamo</title>
+
+  <!-- Conectamos el archivo CSS externo -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#00d4a0">
+</head>
+
+<body>
+
+  <!-- ENCABEZADO -->
+  <div class="header">
+    <h1>💧 CarteraApp</h1>
+    <span class="header-sub">Nuevo préstamo</span>
+  </div>
+
+  <div class="container">
+
+    <!-- FORMULARIO -->
+    <div class="card">
+      <h2>💰 Registrar préstamo</h2>
+
+      <div class="campo">
+        <label>Nombre del cliente</label>
+        <input type="text" id="nombreCliente" placeholder="Ej: María González">
+      </div>
+
+      <div class="campo">
+        <label>Teléfono</label>
+        <input type="tel" id="telefono" placeholder="Ej: 311 234 5678">
+      </div>
+
+      <div class="campo">
+        <label>Dirección / Barrio</label>
+        <input type="text" id="direccion" placeholder="Ej: Cra 15 #42-10, Barrio Cuba">
+      </div>
+
+      <div class="campo">
+        <label>Monto del préstamo ($)</label>
+        <input type="number" id="monto" placeholder="Ej: 500000" oninput="calcular()">
+      </div>
+
+      <div class="campo">
+        <label>Plazo (días)</label>
+        <input type="number" id="plazo" placeholder="Ej: 30" oninput="calcular()">
+      </div>
+
+      <div class="campo">
+        <label>Tasa de interés mensual (%)</label>
+        <input type="number" id="tasa" placeholder="Ej: 5" oninput="calcular()">
+      </div>
+
+      <!-- CALCULADORA -->
+      <div class="resultado-box">
+        <div class="resultado-fila">
+          <span class="etiqueta">Monto prestado</span>
+          <span class="valor" id="r-monto">—</span>
+        </div>
+        <div class="resultado-fila">
+          <span class="etiqueta">Interés generado</span>
+          <span class="valor naranja" id="r-interes">—</span>
+        </div>
+        <div class="resultado-fila">
+          <span class="etiqueta">Total a devolver</span>
+          <span class="valor verde" id="r-total">—</span>
+        </div>
+        <div class="resultado-fila">
+          <span class="etiqueta">Cuota diaria</span>
+          <span class="valor grande" id="r-cuota">—</span>
+        </div>
+      </div>
+
+      <button class="btn btn-verde" onclick="guardarPrestamo()">
+        Guardar préstamo →
+      </button>
+
+      <div class="mensaje mensaje-exito" id="mensajeExito">
+        ✅ ¡Préstamo guardado correctamente!
+      </div>
+    </div>
+
+    <!-- LISTA DE PRÉSTAMOS -->
+    <div class="card">
+      <h2>📋 Préstamos registrados</h2>
+      <div id="listaPrestamos">
+        <div class="vacio">
+          <div class="vacio-icono">📭</div>
+          Aún no hay préstamos guardados
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MENÚ INFERIOR DE NAVEGACIÓN -->
+  <nav class="menu-inferior">
+    <a href="index.html" class="menu-item activo">
+      <span class="icono">💰</span>
+      Préstamos
+    </a>
+    <a href="cobros.html" class="menu-item">
+      <span class="icono">📅</span>
+      Cobros
+    </a>
+  </nav>
+
+  <script>
+    function calcular() {
+      var monto = parseFloat(document.getElementById('monto').value) || 0;
+      var plazo = parseFloat(document.getElementById('plazo').value) || 0;
+      var tasa  = parseFloat(document.getElementById('tasa').value)  || 0;
+
+      var interes = monto * (tasa / 100);
+      var total   = monto + interes;
+      var cuota   = plazo > 0 ? total / plazo : 0;
+
+      document.getElementById('r-monto').textContent   = formatoPeso(monto);
+      document.getElementById('r-interes').textContent = formatoPeso(interes);
+      document.getElementById('r-total').textContent   = formatoPeso(total);
+      document.getElementById('r-cuota').textContent   = formatoPeso(cuota);
+    }
+
+    function formatoPeso(numero) {
+      if (numero === 0) return '—';
+      return '$' + Math.round(numero).toLocaleString('es-CO');
+    }
+
+    function guardarPrestamo() {
+      var nombre    = document.getElementById('nombreCliente').value.trim();
+      var tel       = document.getElementById('telefono').value.trim();
+      var direccion = document.getElementById('direccion').value.trim();
+      var monto     = parseFloat(document.getElementById('monto').value) || 0;
+      var plazo     = parseFloat(document.getElementById('plazo').value) || 0;
+      var tasa      = parseFloat(document.getElementById('tasa').value)  || 0;
+
+      if (nombre === '') { alert('Escribe el nombre del cliente.'); return; }
+      if (monto <= 0 || plazo <= 0 || tasa <= 0) { alert('Completa monto, plazo y tasa.'); return; }
+
+      var interes = monto * (tasa / 100);
+      var total   = monto + interes;
+      var cuota   = total / plazo;
+
+      // Cada préstamo tiene un ID único basado en la fecha exacta
+      var nuevoPrestamo = {
+        id:        Date.now(),
+        nombre:    nombre,
+        telefono:  tel,
+        direccion: direccion,
+        monto:     monto,
+        plazo:     plazo,
+        tasa:      tasa,
+        total:     total,
+        cuota:     cuota,
+        pagos:     0,        // cuántas cuotas ha pagado
+        fecha:     new Date().toLocaleDateString('es-CO')
+      };
+
+      var listado = obtenerPrestamos();
+      listado.push(nuevoPrestamo);
+      localStorage.setItem('prestamos', JSON.stringify(listado));
+
+      // Mostrar éxito y limpiar
+      var msg = document.getElementById('mensajeExito');
+      msg.style.display = 'block';
+      setTimeout(function() { msg.style.display = 'none'; }, 3000);
+
+      document.getElementById('nombreCliente').value = '';
+      document.getElementById('telefono').value = '';
+      document.getElementById('direccion').value = '';
+      document.getElementById('monto').value = '';
+      document.getElementById('plazo').value = '';
+      document.getElementById('tasa').value = '';
+      document.getElementById('r-monto').textContent   = '—';
+      document.getElementById('r-interes').textContent = '—';
+      document.getElementById('r-total').textContent   = '—';
+      document.getElementById('r-cuota').textContent   = '—';
+
+      mostrarPrestamos();
+    }
+
+    // Función reutilizable para leer préstamos guardados
+    function obtenerPrestamos() {
+      var guardados = localStorage.getItem('prestamos');
+      return guardados ? JSON.parse(guardados) : [];
+    }
+
+    function mostrarPrestamos() {
+      var listado    = obtenerPrestamos();
+      var contenedor = document.getElementById('listaPrestamos');
+
+      if (listado.length === 0) {
+        contenedor.innerHTML = '<div class="vacio"><div class="vacio-icono">📭</div>Aún no hay préstamos guardados</div>';
+        return;
+      }
+
+      var html = '';
+      for (var i = 0; i < listado.length; i++) {
+        var p = listado[i];
+        var pagosRestantes = p.plazo - p.pagos;
+        html += '<div class="lista-item">';
+        html +=   '<div>';
+        html +=     '<div class="lista-item-nombre">' + p.nombre + '</div>';
+        html +=     '<div class="lista-item-detalle">📍 ' + p.direccion + '</div>';
+        html +=     '<div class="lista-item-detalle">' + formatoPeso(p.monto) + ' · ' + p.tasa + '% · ' + p.plazo + ' días</div>';
+        html +=     '<div class="lista-item-detalle">📅 ' + p.fecha + ' · Faltan ' + pagosRestantes + ' cuotas</div>';
+        html +=   '</div>';
+        html +=   '<div class="lista-item-derecha">';
+        html +=     '<div class="lista-item-monto">' + formatoPeso(p.cuota) + '<small>cuota diaria</small></div>';
+        html +=   '</div>';
+        html += '</div>';
+      }
+      contenedor.innerHTML = html;
+    }
+
+    mostrarPrestamos();
+  </script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarteraApp – Cliente</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Estilos específicos de esta página */
+    .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00d4a0, #007a5e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 700;
+      color: #000;
+      flex-shrink: 0;
+    }
+
+    .perfil {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .perfil-nombre {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .perfil-dato {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 2px;
+    }
+
+    .historial-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #2a2f3a;
+      font-size: 13px;
+    }
+
+    .historial-item:last-child {
+      border-bottom: none;
+    }
+
+    .historial-num {
+      color: #6b7280;
+      font-size: 12px;
+    }
+
+    .historial-fecha {
+      color: #6b7280;
+      font-size: 12px;
+    }
+
+    .historial-monto {
+      font-weight: 700;
+      color: #00d4a0;
+    }
+
+    /* Campos de edición */
+    .edit-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 20;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .edit-overlay.abierto {
+      display: flex;
+    }
+
+    .edit-modal {
+      background: #161920;
+      border: 1px solid #2a2f3a;
+      border-radius: 14px;
+      padding: 24px;
+      width: 100%;
+      max-width: 440px;
+    }
+
+    .edit-modal h2 {
+      font-size: 16px;
+      color: #00d4a0;
+      margin-bottom: 18px;
+    }
+
+    .btn-rojo {
+      background: rgba(255,69,96,.15);
+      color: #ff4560;
+      border: 1px solid #ff4560;
+    }
+
+    .btn-rojo:hover {
+      background: #ff4560;
+      color: #fff;
+    }
+
+    .mora-banner {
+      background: rgba(255,69,96,.1);
+      border: 1px solid #ff4560;
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: #ff4560;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .btn-wsp {
+      background: #25D366;
+      color: #fff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-wsp:hover {
+      background: #20bd5a;
+    }
+
+    .btns-fila {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ENCABEZADO -->
+  <div class="header">
+    <h1>
+      <a href="cobros.html" style="color:#6b7280; text-decoration:none; font-size:20px;">←</a>
+      &nbsp;Ficha del cliente
+    </h1>
+    <span class="header-sub" id="estadoBadge"></span>
+  </div>
+
+  <div class="container">
+
+    <!-- BANNER DE MORA (aparece si está en mora) -->
+    <div class="mora-banner" id="moraBanner">
+      ⚠️ Este cliente lleva <span id="diasMora"></span> día(s) sin pagar
+    </div>
+
+    <!-- PERFIL -->
+    <div class="card">
+      <div class="perfil">
+        <div class="avatar" id="avatarInicial">?</div>
+        <div>
+          <div class="perfil-nombre" id="clienteNombre">—</div>
+          <div class="perfil-dato" id="clienteTelefono">—</div>
+          <div class="perfil-dato" id="clienteDireccion">—</div>
+          <div class="perfil-dato" id="clienteFecha">—</div>
+        </div>
+      </div>
+
+      <!-- KPIs del cliente -->
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="kpi-label">Monto prestado</div>
+          <div class="kpi-valor verde" id="kpi-monto">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Cuota diaria</div>
+          <div class="kpi-valor naranja" id="kpi-cuota">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Total pagado</div>
+          <div class="kpi-valor verde" id="kpi-pagado">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Saldo pendiente</div>
+          <div class="kpi-valor rojo" id="kpi-saldo">—</div>
+        </div>
+      </div>
+
+      <!-- Barra de progreso -->
+      <div style="margin-top: 14px;">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:#6b7280; margin-bottom:6px;">
+          <span id="progreso-texto">0 de 0 cuotas pagadas</span>
+          <span id="progreso-pct">0%</span>
+        </div>
+        <div style="background:#2a2f3a; border-radius:4px; height:8px;">
+          <div id="progreso-barra" style="background:#00d4a0; width:0%; height:8px; border-radius:4px; transition: width 0.4s;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTONES DE ACCIÓN -->
+    <div class="btns-fila">
+      <button class="btn btn-wsp" id="btnWsp" onclick="abrirWhatsapp()">
+        💬 WhatsApp
+      </button>
+      <button class="btn btn-verde" onclick="registrarPagoDesdeCliente()">
+        ✓ Registrar pago
+      </button>
+    </div>
+
+    <div class="btns-fila" style="margin-top:0;">
+      <button class="btn btn-gris" onclick="abrirEdicion()">
+        ✏️ Editar datos
+      </button>
+      <button class="btn btn-rojo" onclick="confirmarEliminar()">
+        🗑️ Eliminar
+      </button>
+    </div>
+
+    <!-- HISTORIAL DE PAGOS -->
+    <div class="card" style="margin-top: 16px;">
+      <h2>🕐 Historial de pagos</h2>
+      <div id="historialPagos">
+        <div class="vacio">Sin pagos registrados aún</div>
+      </div>
+    </div>
+
+    <div class="mensaje mensaje-exito" id="mensajePago">
+      ✅ Pago registrado
+    </div>
+
+  </div>
+
+  <!-- MODAL DE EDICIÓN -->
+  <div class="edit-overlay" id="editOverlay">
+    <div class="edit-modal">
+      <h2>✏️ Editar cliente</h2>
+
+      <div class="campo">
+        <label>Nombre</label>
+        <input type="text" id="edit-nombre">
+      </div>
+      <div class="campo">
+        <label>Teléfono</label>
+        <input type="tel" id="edit-telefono">
+      </div>
+      <div class="campo">
+        <label>Dirección / Barrio</label>
+        <input type="text" id="edit-direccion">
+      </div>
+
+      <div class="btns-fila" style="margin-top: 8px;">
+        <button class="btn btn-gris" onclick="cerrarEdicion()">Cancelar</button>
+        <button class="btn btn-verde" onclick="guardarEdicion()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENÚ INFERIOR -->
+  <nav class="menu-inferior">
+    <a href="index.html" class="menu-item">
+      <span class="icono">💰</span>
+      Préstamos
+    </a>
+    <a href="cobros.html" class="menu-item">
+      <span class="icono">📅</span>
+      Cobros
+    </a>
+  </nav>
+
+  <script>
+
+    // ------------------------------------------------
+    // LEER EL ID DEL CLIENTE DESDE LA URL
+    // Cuando navegamos a cliente.html?id=123
+    // leemos el número 123 para saber qué cliente mostrar
+    // ------------------------------------------------
+    var params    = new URLSearchParams(window.location.search);
+    var clienteId = parseInt(params.get('id'));
+
+    function obtenerPrestamos() {
+      var guardados = localStorage.getItem('prestamos');
+      return guardados ? JSON.parse(guardados) : [];
+    }
+
+    function guardarPrestamos(listado) {
+      localStorage.setItem('prestamos', JSON.stringify(listado));
+    }
+
+    function formatoPeso(numero) {
+      return '$' + Math.round(numero).toLocaleString('es-CO');
+    }
+
+    // ------------------------------------------------
+    // FUNCIÓN PRINCIPAL: cargar datos del cliente
+    // ------------------------------------------------
+    function cargarCliente() {
+      var listado = obtenerPrestamos();
+
+      // Buscamos el préstamo con el ID que viene en la URL
+      var p = listado.find(function(x) { return x.id === clienteId; });
+
+      // Si no existe, volvemos atrás
+      if (!p) {
+        alert('Cliente no encontrado.');
+        window.location.href = 'cobros.html';
+        return;
+      }
+
+      // Iniciales para el avatar (primera letra del nombre)
+      document.getElementById('avatarInicial').textContent = p.nombre.charAt(0).toUpperCase();
+
+      // Datos del perfil
+      document.getElementById('clienteNombre').textContent    = p.nombre;
+      document.getElementById('clienteTelefono').textContent  = '📱 ' + p.telefono;
+      document.getElementById('clienteDireccion').textContent = '📍 ' + p.direccion;
+      document.getElementById('clienteFecha').textContent     = '📅 Préstamo desde ' + p.fecha;
+
+      // Cálculos
+      var pagado  = p.pagos * p.cuota;
+      var saldo   = p.total - pagado;
+      var pct     = Math.round((p.pagos / p.plazo) * 100);
+
+      // KPIs
+      document.getElementById('kpi-monto').textContent  = formatoPeso(p.monto);
+      document.getElementById('kpi-cuota').textContent  = formatoPeso(p.cuota);
+      document.getElementById('kpi-pagado').textContent = formatoPeso(pagado);
+      document.getElementById('kpi-saldo').textContent  = formatoPeso(saldo);
+
+      // Barra de progreso
+      document.getElementById('progreso-texto').textContent = p.pagos + ' de ' + p.plazo + ' cuotas pagadas';
+      document.getElementById('progreso-pct').textContent   = pct + '%';
+      document.getElementById('progreso-barra').style.width = pct + '%';
+
+      // Color de la barra según avance
+      var barra = document.getElementById('progreso-barra');
+      if (pct < 30) barra.style.background = '#ff4560';
+      else if (pct < 60) barra.style.background = '#f5c842';
+      else barra.style.background = '#00d4a0';
+
+      // Estado del préstamo
+      var badge = document.getElementById('estadoBadge');
+      if (p.pagos >= p.plazo) {
+        badge.textContent = '✅ Pagado';
+        badge.style.color = '#00d4a0';
+      } else {
+        badge.textContent = 'Activo';
+        badge.style.color = '#f5c842';
+      }
+
+      // Detección de mora
+      // Si el préstamo tiene fecha de último pago guardada
+      if (p.ultimoPago) {
+        var ultimoPago = new Date(p.ultimoPago);
+        var hoy        = new Date();
+        var diffMs     = hoy - ultimoPago;
+        var diffDias   = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffDias >= 1 && p.pagos < p.plazo) {
+          document.getElementById('moraBanner').style.display = 'block';
+          document.getElementById('diasMora').textContent = diffDias;
+        }
+      }
+
+      // Historial de pagos
+      mostrarHistorial(p);
+    }
+
+
+    // ------------------------------------------------
+    // HISTORIAL DE PAGOS
+    // ------------------------------------------------
+    function mostrarHistorial(p) {
+      var contenedor = document.getElementById('historialPagos');
+
+      if (!p.historial || p.historial.length === 0) {
+        contenedor.innerHTML = '<div class="vacio">Sin pagos registrados aún</div>';
+        return;
+      }
+
+      var html = '';
+      // Mostramos del más reciente al más antiguo
+      for (var i = p.historial.length - 1; i >= 0; i--) {
+        var h = p.historial[i];
+        html += '<div class="historial-item">';
+        html +=   '<span class="historial-num">Cuota #' + h.numeroCuota + '</span>';
+        html +=   '<span class="historial-fecha">📅 ' + h.fecha + '</span>';
+        html +=   '<span class="historial-monto">' + formatoPeso(h.monto) + '</span>';
+        html += '</div>';
+      }
+
+      contenedor.innerHTML = html;
+    }
+
+
+    // ------------------------------------------------
+    // REGISTRAR PAGO DESDE ESTA PANTALLA
+    // ------------------------------------------------
+    function registrarPagoDesdeCliente() {
+      var listado = obtenerPrestamos();
+      var idx = listado.findIndex(function(x) { return x.id === clienteId; });
+
+      if (idx === -1) return;
+
+      var p = listado[idx];
+
+      if (p.pagos >= p.plazo) {
+        alert('Este préstamo ya está completamente pagado.');
+        return;
+      }
+
+      // Sumamos la cuota
+      p.pagos += 1;
+
+      // Guardamos la fecha de este pago
+      p.ultimoPago = new Date().toISOString();
+
+      // Guardamos en el historial
+      if (!p.historial) p.historial = [];
+      p.historial.push({
+        numeroCuota: p.pagos,
+        fecha: new Date().toLocaleDateString('es-CO'),
+        monto: p.cuota
+      });
+
+      listado[idx] = p;
+      guardarPrestamos(listado);
+
+      // Mensaje de éxito
+      var msg = document.getElementById('mensajePago');
+      msg.style.display = 'block';
+      setTimeout(function() { msg.style.display = 'none'; }, 2500);
+
+      // Recargamos la pantalla
+      cargarCliente();
+    }
+
+
+    // ------------------------------------------------
+    // WHATSAPP
+    // ------------------------------------------------
+    function abrirWhatsapp() {
+      var listado = obtenerPrestamos();
+      var p = listado.find(function(x) { return x.id === clienteId; });
+      if (!p || !p.telefono) { alert('Este cliente no tiene teléfono registrado.'); return; }
+
+      var restante = (p.plazo - p.pagos) * p.cuota;
+      var mensaje  = 'Hola ' + p.nombre + ', le recordamos que tiene una cuota pendiente de ' +
+                     formatoPeso(p.cuota) + '. Saldo total: ' + formatoPeso(restante) + '. Gracias.';
+
+      var numero = p.telefono.replace(/\s/g, '');
+      // Agregamos el código de Colombia si no lo tiene
+      if (!numero.startsWith('57')) numero = '57' + numero;
+
+      window.open('https://wa.me/' + numero + '?text=' + encodeURIComponent(mensaje), '_blank');
+    }
+
+
+    // ------------------------------------------------
+    // EDITAR CLIENTE
+    // ------------------------------------------------
+    function abrirEdicion() {
+      var listado = obtenerPrestamos();
+      var p = listado.find(function(x) { return x.id === clienteId; });
+      if (!p) return;
+
+      // Llenamos el formulario con los datos actuales
+      document.getElementById('edit-nombre').value    = p.nombre;
+      document.getElementById('edit-telefono').value  = p.telefono;
+      document.getElementById('edit-direccion').value = p.direccion;
+
+      document.getElementById('editOverlay').classList.add('abierto');
+    }
+
+    function cerrarEdicion() {
+      document.getElementById('editOverlay').classList.remove('abierto');
+    }
+
+    function guardarEdicion() {
+      var nuevoNombre    = document.getElementById('edit-nombre').value.trim();
+      var nuevoTelefono  = document.getElementById('edit-telefono').value.trim();
+      var nuevaDireccion = document.getElementById('edit-direccion').value.trim();
+
+      if (nuevoNombre === '') { alert('El nombre no puede estar vacío.'); return; }
+
+      var listado = obtenerPrestamos();
+      var idx = listado.findIndex(function(x) { return x.id === clienteId; });
+      if (idx === -1) return;
+
+      listado[idx].nombre    = nuevoNombre;
+      listado[idx].telefono  = nuevoTelefono;
+      listado[idx].direccion = nuevaDireccion;
+
+      guardarPrestamos(listado);
+      cerrarEdicion();
+      cargarCliente(); // recargamos con los datos nuevos
+    }
+
+
+    // ------------------------------------------------
+    // ELIMINAR CLIENTE
+    // ------------------------------------------------
+    function confirmarEliminar() {
+      var listado = obtenerPrestamos();
+      var p = listado.find(function(x) { return x.id === clienteId; });
+      if (!p) return;
+
+      // Pedimos confirmación antes de borrar
+      var confirmar = confirm('¿Seguro que quieres eliminar a ' + p.nombre + '? Esta acción no se puede deshacer.');
+
+      if (confirmar) {
+        // Filtramos y quitamos este préstamo
+        var nuevaLista = listado.filter(function(x) { return x.id !== clienteId; });
+        guardarPrestamos(nuevaLista);
+        // Volvemos a la lista de cobros
+        window.location.href = 'cobros.html';
+      }
+    }
+
+
+    // Cargamos el cliente al abrir la página
+    cargarCliente();
+
+  </script>
+
+</body>
+</html>

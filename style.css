@@ -1,0 +1,342 @@
+/* =============================================
+   CARTERA APP - Estilos globales
+   Este archivo lo usan TODAS las páginas
+============================================= */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #0d0f14;
+  color: #e8eaf0;
+  min-height: 100vh;
+  padding-bottom: 80px; /* espacio para el menú inferior */
+}
+
+/* =============================================
+   ENCABEZADO SUPERIOR
+============================================= */
+.header {
+  background: #161920;
+  border-bottom: 2px solid #00d4a0;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header h1 {
+  font-size: 18px;
+  color: #00d4a0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-sub {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* =============================================
+   CONTENEDOR PRINCIPAL
+============================================= */
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+
+/* =============================================
+   TARJETAS
+============================================= */
+.card {
+  background: #161920;
+  border: 1px solid #2a2f3a;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.card h2 {
+  font-size: 13px;
+  color: #00d4a0;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* =============================================
+   CAMPOS DE FORMULARIO
+============================================= */
+.campo {
+  margin-bottom: 14px;
+}
+
+.campo label {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
+.campo input,
+.campo select {
+  width: 100%;
+  background: #1e2229;
+  border: 1px solid #2a2f3a;
+  border-radius: 8px;
+  padding: 11px 14px;
+  color: #e8eaf0;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.campo input:focus,
+.campo select:focus {
+  border-color: #00d4a0;
+}
+
+/* =============================================
+   BOTONES
+============================================= */
+.btn {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: Arial, sans-serif;
+}
+
+.btn-verde {
+  background: #00d4a0;
+  color: #000;
+}
+
+.btn-verde:hover {
+  background: #00f0b8;
+}
+
+.btn-gris {
+  background: #1e2229;
+  color: #e8eaf0;
+  border: 1px solid #2a2f3a;
+}
+
+/* =============================================
+   CAJA DE RESULTADO / CALCULADORA
+============================================= */
+.resultado-box {
+  background: #1e2229;
+  border: 1px solid #2a2f3a;
+  border-radius: 10px;
+  padding: 16px;
+  margin: 12px 0;
+}
+
+.resultado-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid #2a2f3a;
+  font-size: 13px;
+}
+
+.resultado-fila:last-child {
+  border-bottom: none;
+  padding-top: 10px;
+}
+
+.resultado-fila .etiqueta { color: #6b7280; }
+.resultado-fila .valor { font-weight: 700; }
+
+.valor.verde   { color: #00d4a0; }
+.valor.naranja { color: #ff6b35; }
+.valor.rojo    { color: #ff4560; }
+.valor.amarillo{ color: #f5c842; }
+.valor.grande  { font-size: 20px; color: #00d4a0; }
+
+/* =============================================
+   PILLS / ETIQUETAS DE ESTADO
+============================================= */
+.pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pill-verde   { background: rgba(0,212,160,.15); color: #00d4a0; }
+.pill-rojo    { background: rgba(255,69,96,.15);  color: #ff4560; }
+.pill-amarillo{ background: rgba(245,200,66,.15); color: #f5c842; }
+
+/* =============================================
+   MENSAJE DE ÉXITO / ERROR
+============================================= */
+.mensaje {
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+  font-weight: 600;
+  margin-top: 12px;
+  display: none;
+}
+
+.mensaje-exito {
+  background: rgba(0,212,160,.1);
+  border: 1px solid #00d4a0;
+  color: #00d4a0;
+}
+
+.mensaje-error {
+  background: rgba(255,69,96,.1);
+  border: 1px solid #ff4560;
+  color: #ff4560;
+}
+
+/* =============================================
+   MENÚ INFERIOR (navegación entre páginas)
+============================================= */
+.menu-inferior {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #161920;
+  border-top: 1px solid #2a2f3a;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0 14px;
+  z-index: 10;
+}
+
+.menu-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-decoration: none;
+  color: #6b7280;
+  font-size: 10px;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.menu-item span.icono {
+  font-size: 22px;
+}
+
+.menu-item.activo {
+  color: #00d4a0;
+}
+
+/* =============================================
+   ITEMS DE LISTA (préstamos, cobros, etc)
+============================================= */
+.lista-item {
+  background: #1e2229;
+  border: 1px solid #2a2f3a;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lista-item-nombre {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 3px;
+}
+
+.lista-item-detalle {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 2px;
+}
+
+.lista-item-derecha {
+  text-align: right;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.lista-item-monto {
+  font-size: 18px;
+  font-weight: 700;
+  color: #00d4a0;
+}
+
+.lista-item-monto small {
+  display: block;
+  font-size: 10px;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+/* =============================================
+   VACÍO (cuando no hay datos)
+============================================= */
+.vacio {
+  text-align: center;
+  color: #6b7280;
+  padding: 30px 20px;
+  font-size: 14px;
+}
+
+.vacio .vacio-icono {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+/* =============================================
+   KPI (tarjetas de resumen numérico)
+============================================= */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.kpi {
+  background: #161920;
+  border: 1px solid #2a2f3a;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.kpi-label {
+  font-size: 10px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.kpi-valor {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.kpi-valor.verde   { color: #00d4a0; }
+.kpi-valor.rojo    { color: #ff4560; }
+.kpi-valor.amarillo{ color: #f5c842; }
+.kpi-valor.naranja { color: #ff6b35; }

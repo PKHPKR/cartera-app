@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarteraApp – Cobros del Día</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .mora-tag {
+      display: inline-block;
+      background: rgba(255,69,96,.15);
+      color: #ff4560;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      margin-left: 6px;
+    }
+
+    .cliente-link {
+      color: #e8eaf0;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .cliente-link:hover {
+      color: #00d4a0;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <h1>📅 Cobros del día</h1>
+    <span class="header-sub" id="fechaHoy"></span>
+  </div>
+
+  <div class="container">
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Por cobrar hoy</div>
+        <div class="kpi-valor verde" id="kpi-total">$0</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Clientes activos</div>
+        <div class="kpi-valor naranja" id="kpi-clientes">0</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">En mora</div>
+        <div class="kpi-valor rojo" id="kpi-mora">0</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Completados</div>
+        <div class="kpi-valor amarillo" id="kpi-completados">0</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💳 Clientes a cobrar</h2>
+      <div id="listaCobros">
+        <div class="vacio">
+          <div class="vacio-icono">📭</div>
+          No hay préstamos activos
+        </div>
+      </div>
+    </div>
+
+    <div class="mensaje mensaje-exito" id="mensajePago">
+      ✅ Pago registrado correctamente
+    </div>
+
+  </div>
+
+  <nav class="menu-inferior">
+    <a href="index.html" class="menu-item">
+      <span class="icono">💰</span>
+      Préstamos
+    </a>
+    <a href="cobros.html" class="menu-item activo">
+      <span class="icono">📅</span>
+      Cobros
+    </a>
+  </nav>
+
+  <script>
+
+    var hoy = new Date();
+    document.getElementById('fechaHoy').textContent =
+      hoy.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
+
+    function obtenerPrestamos() {
+      var guardados = localStorage.getItem('prestamos');
+      return guardados ? JSON.parse(guardados) : [];
+    }
+
+    function guardarPrestamos(listado) {
+      localStorage.setItem('prestamos', JSON.stringify(listado));
+    }
+
+    function formatoPeso(numero) {
+      return '$' + Math.round(numero).toLocaleString('es-CO');
+    }
+
+    // Calcula cuántos días lleva sin pagar
+    function diasSinPagar(p) {
+      if (!p.ultimoPago) return 0;
+      var ultimo = new Date(p.ultimoPago);
+      var ahora  = new Date();
+      return Math.floor((ahora - ultimo) / (1000 * 60 * 60 * 24));
+    }
+
+    function mostrarCobros() {
+      var listado    = obtenerPrestamos();
+      var contenedor = document.getElementById('listaCobros');
+
+      var activos = listado.filter(function(p) { return p.pagos < p.plazo; });
+
+      if (activos.length === 0) {
+        contenedor.innerHTML = '<div class="vacio"><div class="vacio-icono">🎉</div>No hay cobros pendientes</div>';
+        actualizarKpis(listado);
+        return;
+      }
+
+      var html = '';
+      for (var i = 0; i < listado.length; i++) {
+        var p = listado[i];
+        if (p.pagos >= p.plazo) continue;
+
+        var restante   = p.plazo - p.pagos;
+        var porcentaje = Math.round((p.pagos / p.plazo) * 100);
+        var dias       = diasSinPagar(p);
+        var enMora     = dias >= 1;
+
+        var colorBarra = '#00d4a0';
+        if (porcentaje < 30) colorBarra = '#ff4560';
+        else if (porcentaje < 60) colorBarra = '#f5c842';
+
+        html += '<div class="lista-item" style="flex-direction:column; align-items:stretch; gap:12px;">';
+
+        // Nombre clickeable → va a la ficha del cliente
+        html += '<div style="display:flex; justify-content:space-between; align-items:flex-start;">';
+        html +=   '<div>';
+        html +=     '<div>';
+        html +=       '<a href="cliente.html?id=' + p.id + '" class="cliente-link">' + p.nombre + '</a>';
+        if (enMora) html += '<span class="mora-tag">⚠ ' + dias + ' día(s) sin pagar</span>';
+        html +=     '</div>';
+        html +=     '<div class="lista-item-detalle">📱 ' + p.telefono + '</div>';
+        html +=     '<div class="lista-item-detalle">📍 ' + p.direccion + '</div>';
+        html +=   '</div>';
+        html +=   '<div style="text-align:right;">';
+        html +=     '<div class="lista-item-monto">' + formatoPeso(p.cuota) + '</div>';
+        html +=     '<div style="font-size:11px;color:#6b7280;">cuota #' + (p.pagos + 1) + ' de ' + p.plazo + '</div>';
+        html +=   '</div>';
+        html += '</div>';
+
+        // Barra de progreso
+        html += '<div>';
+        html +=   '<div style="display:flex; justify-content:space-between; font-size:11px; color:#6b7280; margin-bottom:5px;">';
+        html +=     '<span>' + p.pagos + ' cuotas pagadas</span>';
+        html +=     '<span>' + restante + ' restantes</span>';
+        html +=   '</div>';
+        html +=   '<div style="background:#2a2f3a; border-radius:4px; height:6px;">';
+        html +=     '<div style="background:' + colorBarra + '; width:' + porcentaje + '%; height:6px; border-radius:4px;"></div>';
+        html +=   '</div>';
+        html += '</div>';
+
+        // Botón de pago
+        html += '<button class="btn btn-verde" onclick="registrarPago(' + p.id + ')">';
+        html +=   '✓ Registrar pago de ' + formatoPeso(p.cuota);
+        html += '</button>';
+
+        html += '</div>';
+      }
+
+      contenedor.innerHTML = html;
+      actualizarKpis(listado);
+    }
+
+    function registrarPago(idPrestamo) {
+      var listado = obtenerPrestamos();
+      var idx = listado.findIndex(function(x) { return x.id === idPrestamo; });
+      if (idx === -1) return;
+
+      var p = listado[idx];
+      p.pagos     += 1;
+      p.ultimoPago = new Date().toISOString();
+
+      // Guardamos en el historial también
+      if (!p.historial) p.historial = [];
+      p.historial.push({
+        numeroCuota: p.pagos,
+        fecha: new Date().toLocaleDateString('es-CO'),
+        monto: p.cuota
+      });
+
+      listado[idx] = p;
+      guardarPrestamos(listado);
+
+      var msg = document.getElementById('mensajePago');
+      msg.style.display = 'block';
+      setTimeout(function() { msg.style.display = 'none'; }, 2500);
+
+      mostrarCobros();
+    }
+
+    function actualizarKpis(listado) {
+      var totalCuotas     = 0;
+      var clientesActivos = 0;
+      var enMora          = 0;
+      var completados     = 0;
+
+      for (var i = 0; i < listado.length; i++) {
+        var p = listado[i];
+        if (p.pagos < p.plazo) {
+          totalCuotas += p.cuota;
+          clientesActivos++;
+          if (diasSinPagar(p) >= 1) enMora++;
+        } else {
+          completados++;
+        }
+      }
+
+      document.getElementById('kpi-total').textContent      = formatoPeso(totalCuotas);
+      document.getElementById('kpi-clientes').textContent   = clientesActivos;
+      document.getElementById('kpi-mora').textContent       = enMora;
+      document.getElementById('kpi-completados').textContent= completados;
+    }
+
+    mostrarCobros();
+  </script>
+
+</body>
+</html>
