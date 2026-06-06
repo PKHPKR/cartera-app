@@ -2,7 +2,7 @@
   "name": "CarteraApp",
   "short_name": "CarteraApp",
   "description": "Gestión de préstamos y cobros",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0d0f14",
   "theme_color": "#00d4a0",
