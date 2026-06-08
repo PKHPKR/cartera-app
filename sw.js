@@ -1,9 +1,12 @@
-var CACHE_NAME = 'carteraapp-v2';
+var CACHE_NAME = 'carteraapp-v3';
 
 var ARCHIVOS = [
   './index.html',
   './cobros.html',
   './cliente.html',
+  './reportes.html',
+  './cobradores.html',
+  './login.html',
   './style.css',
   './manifest.json'
 ];

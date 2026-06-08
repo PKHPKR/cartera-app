@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarteraApp – Cobradores</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#00d4a0">
+  <style>
+    .cobrador-card {
+      background: #1e2229;
+      border: 1px solid #2a2f3a;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .cobrador-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .cobrador-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff6b35, #ff9f68);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: #000;
+      flex-shrink: 0;
+    }
+
+    .cobrador-nombre {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .cobrador-meta {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    .asignar-select {
+      width: 100%;
+      background: #161920;
+      border: 1px solid #2a2f3a;
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: #e8eaf0;
+      font-size: 13px;
+      outline: none;
+      margin-bottom: 8px;
+    }
+
+    .asignar-select:focus {
+      border-color: #00d4a0;
+    }
+
+    .cliente-asignado {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: #161920;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .btn-desasignar {
+      background: none;
+      border: none;
+      color: #ff4560;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+
+    .sin-clientes {
+      font-size: 12px;
+      color: #6b7280;
+      text-align: center;
+      padding: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <h1>👷 Cobradores</h1>
+    <span class="header-sub" id="nombreUsuario"></span>
+  </div>
+
+  <div class="container">
+
+    <div id="contenidoCobradores">
+      <!-- Se genera con JavaScript -->
+    </div>
+
+  </div>
+
+  <!-- MENÚ INFERIOR -->
+  <nav class="menu-inferior">
+    <a href="index.html" class="menu-item">
+      <span class="icono">💰</span>
+      Préstamos
+    </a>
+    <a href="cobros.html" class="menu-item">
+      <span class="icono">📅</span>
+      Cobros
+    </a>
+    <a href="reportes.html" class="menu-item">
+      <span class="icono">📈</span>
+      Reportes
+    </a>
+    <a href="cobradores.html" class="menu-item activo">
+      <span class="icono">👷</span>
+      Equipo
+    </a>
+  </nav>
+
+  <script>
+
+    // ------------------------------------------------
+    // VERIFICAR SESIÓN
+    // Si no hay sesión, mandamos al login
+    // ------------------------------------------------
+    var sesion = JSON.parse(localStorage.getItem('sesion') || 'null');
+
+    if (!sesion) {
+      window.location.href = 'login.html';
+    }
+
+    // Solo el admin puede ver esta pantalla
+    if (sesion && sesion.rol !== 'admin') {
+      window.location.href = 'cobros.html';
+    }
+
+    document.getElementById('nombreUsuario').textContent = sesion ? sesion.nombre : '';
+
+    // Lista de cobradores (igual que en login.html)
+    var COBRADORES = [
+      { id: 'c1', nombre: 'Cobrador 1', usuario: 'cobrador1' },
+      { id: 'c2', nombre: 'Cobrador 2', usuario: 'cobrador2' }
+    ];
+
+    function obtenerPrestamos() {
+      var guardados = localStorage.getItem('prestamos');
+      return guardados ? JSON.parse(guardados) : [];
+    }
+
+    function guardarPrestamos(listado) {
+      localStorage.setItem('prestamos', JSON.stringify(listado));
+    }
+
+    function formatoPeso(numero) {
+      return '$' + Math.round(numero).toLocaleString('es-CO');
+    }
+
+
+    // ------------------------------------------------
+    // MOSTRAR COBRADORES Y SUS CLIENTES
+    // ------------------------------------------------
+    function mostrarCobradores() {
+      var listado    = obtenerPrestamos();
+      var contenedor = document.getElementById('contenidoCobradores');
+      var html       = '';
+
+      for (var i = 0; i < COBRADORES.length; i++) {
+        var cob = COBRADORES[i];
+
+        // Clientes asignados a este cobrador
+        var asignados = listado.filter(function(p) {
+          return p.cobrador === cob.id && p.pagos < p.plazo;
+        });
+
+        // Clientes sin cobrador asignado
+        var sinAsignar = listado.filter(function(p) {
+          return (!p.cobrador || p.cobrador === '') && p.pagos < p.plazo;
+        });
+
+        html += '<div class="cobrador-card">';
+
+        // Encabezado del cobrador
+        html += '<div class="cobrador-header">';
+        html +=   '<div class="cobrador-avatar">' + cob.nombre.charAt(0) + '</div>';
+        html +=   '<div>';
+        html +=     '<div class="cobrador-nombre">' + cob.nombre + '</div>';
+        html +=     '<div class="cobrador-meta">@' + cob.usuario + ' · ' + asignados.length + ' clientes asignados</div>';
+        html +=   '</div>';
+        html += '</div>';
+
+        // Lista de clientes asignados
+        if (asignados.length > 0) {
+          for (var j = 0; j < asignados.length; j++) {
+            var p = asignados[j];
+            html += '<div class="cliente-asignado">';
+            html +=   '<div>';
+            html +=     '<div style="font-weight:600;">' + p.nombre + '</div>';
+            html +=     '<div style="font-size:11px;color:#6b7280;">' + formatoPeso(p.cuota) + ' · cuota diaria</div>';
+            html +=   '</div>';
+            html +=   '<button class="btn-desasignar" onclick="desasignar(' + p.id + ')">✕</button>';
+            html += '</div>';
+          }
+        } else {
+          html += '<div class="sin-clientes">Sin clientes asignados</div>';
+        }
+
+        // Selector para asignar cliente
+        if (sinAsignar.length > 0) {
+          html += '<select class="asignar-select" id="select-' + cob.id + '">';
+          html +=   '<option value="">— Asignar cliente —</option>';
+          for (var k = 0; k < sinAsignar.length; k++) {
+            html += '<option value="' + sinAsignar[k].id + '">' + sinAsignar[k].nombre + '</option>';
+          }
+          html += '</select>';
+          html += '<button class="btn btn-verde" style="padding:9px;" onclick="asignar(\'' + cob.id + '\')">';
+          html +=   '+ Asignar cliente';
+          html += '</button>';
+        } else if (asignados.length === 0) {
+          html += '<div class="sin-clientes" style="color:#f5c842;">No hay clientes sin asignar</div>';
+        }
+
+        html += '</div>'; // fin cobrador-card
+      }
+
+      // Clientes sin cobrador
+      var sinCobrador = listado.filter(function(p) {
+        return (!p.cobrador || p.cobrador === '') && p.pagos < p.plazo;
+      });
+
+      if (sinCobrador.length > 0) {
+        html += '<div class="card">';
+        html +=   '<h2>⚠️ Sin cobrador asignado (' + sinCobrador.length + ')</h2>';
+        for (var m = 0; m < sinCobrador.length; m++) {
+          var pc = sinCobrador[m];
+          html += '<div class="lista-item">';
+          html +=   '<div>';
+          html +=     '<div class="lista-item-nombre">' + pc.nombre + '</div>';
+          html +=     '<div class="lista-item-detalle">' + formatoPeso(pc.cuota) + ' · cuota diaria</div>';
+          html +=   '</div>';
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+
+      contenedor.innerHTML = html;
+    }
+
+
+    // ------------------------------------------------
+    // ASIGNAR CLIENTE A COBRADOR
+    // ------------------------------------------------
+    function asignar(cobradorId) {
+      var select     = document.getElementById('select-' + cobradorId);
+      var clienteId  = parseInt(select.value);
+
+      if (!clienteId) {
+        alert('Selecciona un cliente para asignar.');
+        return;
+      }
+
+      var listado = obtenerPrestamos();
+      var idx = listado.findIndex(function(x) { return x.id === clienteId; });
+      if (idx === -1) return;
+
+      listado[idx].cobrador = cobradorId;
+      guardarPrestamos(listado);
+      mostrarCobradores();
+    }
+
+
+    // ------------------------------------------------
+    // DESASIGNAR CLIENTE
+    // ------------------------------------------------
+    function desasignar(clienteId) {
+      var listado = obtenerPrestamos();
+      var idx = listado.findIndex(function(x) { return x.id === clienteId; });
+      if (idx === -1) return;
+
+      listado[idx].cobrador = '';
+      guardarPrestamos(listado);
+      mostrarCobradores();
+    }
+
+
+    mostrarCobradores();
+
+  </script>
+
+</body>
+</html>
