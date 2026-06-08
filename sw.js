@@ -1,4 +1,4 @@
-var CACHE_NAME = 'carteraapp-v1';
+var CACHE_NAME = 'carteraapp-v2';
 
 var ARCHIVOS = [
   './index.html',
