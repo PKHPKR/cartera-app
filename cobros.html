@@ -74,7 +74,7 @@
 
   </div>
 
-  <nav class="menu-inferior">
+  <<nav class="menu-inferior">
   <a href="index.html" class="menu-item">
     <span class="icono">💰</span>
     Préstamos
@@ -87,9 +87,15 @@
     <span class="icono">📈</span>
     Reportes
   </a>
+  <a href="cobradores.html" class="menu-item">
+    <span class="icono">👷</span>
+    Equipo
+  </a>
 </nav>
 
   <script>
+    var sesion = JSON.parse(localStorage.getItem('sesion') || 'null');
+if (!sesion) window.location.href = 'login.html';
 
     var hoy = new Date();
     document.getElementById('fechaHoy').textContent =
@@ -120,8 +126,11 @@
       var listado    = obtenerPrestamos();
       var contenedor = document.getElementById('listaCobros');
 
-      var activos = listado.filter(function(p) { return p.pagos < p.plazo; });
-
+      var activos = listado.filter(function(p) {
+  if (p.pagos >= p.plazo) return false;
+  if (sesion.rol === 'cobrador') return p.cobrador === sesion.id;
+  return true; // admin ve todos
+});
       if (activos.length === 0) {
         contenedor.innerHTML = '<div class="vacio"><div class="vacio-icono">🎉</div>No hay cobros pendientes</div>';
         actualizarKpis(listado);

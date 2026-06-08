@@ -111,9 +111,15 @@
     <span class="icono">📈</span>
     Reportes
   </a>
+  <a href="cobradores.html" class="menu-item">
+    <span class="icono">👷</span>
+    Equipo
+  </a>
 </nav>
 
   <script>
+    var sesion = JSON.parse(localStorage.getItem('sesion') || 'null');
+if (!sesion) window.location.href = 'login.html';
     function calcular() {
       var monto = parseFloat(document.getElementById('monto').value) || 0;
       var plazo = parseFloat(document.getElementById('plazo').value) || 0;

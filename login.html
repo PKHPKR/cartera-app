@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarteraApp – Iniciar sesión</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#00d4a0">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .logo-grande {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo-icono {
+      font-size: 56px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .logo-nombre {
+      font-size: 28px;
+      font-weight: 700;
+      color: #00d4a0;
+    }
+
+    .logo-sub {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .error-msg {
+      background: rgba(255,69,96,.1);
+      border: 1px solid #ff4560;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #ff4560;
+      font-size: 13px;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    .rol-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .rol-admin    { background: rgba(0,212,160,.15); color: #00d4a0; }
+    .rol-cobrador { background: rgba(255,107,53,.15); color: #ff6b35; }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-box">
+
+    <!-- LOGO -->
+    <div class="logo-grande">
+      <span class="logo-icono">💧</span>
+      <div class="logo-nombre">CarteraApp</div>
+      <div class="logo-sub">Gestión de préstamos</div>
+    </div>
+
+    <!-- FORMULARIO DE LOGIN -->
+    <div class="card">
+      <h2>🔐 Iniciar sesión</h2>
+
+      <div class="error-msg" id="errorMsg">
+        Usuario o contraseña incorrectos
+      </div>
+
+      <div class="campo">
+        <label>Usuario</label>
+        <input
+          type="text"
+          id="usuario"
+          placeholder="Ej: admin"
+          autocomplete="username"
+        >
+      </div>
+
+      <div class="campo">
+        <label>Contraseña</label>
+        <input
+          type="password"
+          id="password"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          onkeydown="teclaEnter(event)"
+        >
+      </div>
+
+      <button class="btn btn-verde" onclick="iniciarSesion()" style="margin-top:8px;">
+        Entrar →
+      </button>
+    </div>
+
+    <!-- INFO DE USUARIOS (solo para desarrollo, luego se quita) -->
+    <div class="card" style="margin-top:12px;">
+      <h2>👥 Usuarios del sistema</h2>
+
+      <div style="margin-bottom:12px;">
+        <span class="rol-badge rol-admin">Administrador</span>
+        <div style="font-size:13px;">Usuario: <strong>admin</strong></div>
+        <div style="font-size:13px;">Contraseña: <strong>admin123</strong></div>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <span class="rol-badge rol-cobrador">Cobrador</span>
+        <div style="font-size:13px;">Usuario: <strong>cobrador1</strong></div>
+        <div style="font-size:13px;">Contraseña: <strong>cobrador123</strong></div>
+      </div>
+
+      <div>
+        <span class="rol-badge rol-cobrador">Cobrador</span>
+        <div style="font-size:13px;">Usuario: <strong>cobrador2</strong></div>
+        <div style="font-size:13px;">Contraseña: <strong>cobrador456</strong></div>
+      </div>
+
+      <div style="margin-top:14px; font-size:11px; color:#6b7280;">
+        ⚠️ Cambia las contraseñas antes de entregar la app al cliente
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+
+    // ------------------------------------------------
+    // USUARIOS DEL SISTEMA
+    // Aquí defines los usuarios y sus roles
+    // En la Fase 8 esto vendrá de una base de datos
+    // ------------------------------------------------
+    var USUARIOS = [
+      {
+        usuario:    'admin',
+        password:   'admin123',
+        nombre:     'Administrador',
+        rol:        'admin'
+      },
+      {
+        usuario:    'cobrador1',
+        password:   'cobrador123',
+        nombre:     'Cobrador 1',
+        rol:        'cobrador',
+        id:         'c1'
+      },
+      {
+        usuario:    'cobrador2',
+        password:   'cobrador456',
+        nombre:     'Cobrador 2',
+        rol:        'cobrador',
+        id:         'c2'
+      }
+    ];
+
+
+    // ------------------------------------------------
+    // Al cargar la página, si ya hay sesión activa
+    // redirigimos directo a la app
+    // ------------------------------------------------
+    window.onload = function() {
+      var sesion = localStorage.getItem('sesion');
+      if (sesion) {
+        var usuario = JSON.parse(sesion);
+        redirigir(usuario.rol);
+      }
+    };
+
+
+    // ------------------------------------------------
+    // FUNCIÓN: iniciar sesión
+    // ------------------------------------------------
+    function iniciarSesion() {
+      var usuario  = document.getElementById('usuario').value.trim();
+      var password = document.getElementById('password').value;
+
+      // Buscamos el usuario en la lista
+      var encontrado = null;
+      for (var i = 0; i < USUARIOS.length; i++) {
+        if (USUARIOS[i].usuario === usuario && USUARIOS[i].password === password) {
+          encontrado = USUARIOS[i];
+          break;
+        }
+      }
+
+      // Si no existe mostramos error
+      if (!encontrado) {
+        document.getElementById('errorMsg').style.display = 'block';
+        return;
+      }
+
+      // Guardamos la sesión en localStorage
+      localStorage.setItem('sesion', JSON.stringify(encontrado));
+
+      // Redirigimos según el rol
+      redirigir(encontrado.rol);
+    }
+
+
+    // ------------------------------------------------
+    // FUNCIÓN: redirigir según rol
+    // ------------------------------------------------
+    function redirigir(rol) {
+      if (rol === 'admin') {
+        window.location.href = 'index.html';
+      } else {
+        window.location.href = 'cobros.html';
+      }
+    }
+
+
+    // Presionar Enter en el campo contraseña
+    function teclaEnter(event) {
+      if (event.key === 'Enter') iniciarSesion();
+    }
+
+  </script>
+
+</body>
+</html>

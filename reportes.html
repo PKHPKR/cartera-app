@@ -230,21 +230,27 @@
 
   <!-- MENÚ INFERIOR -->
   <nav class="menu-inferior">
-    <a href="index.html" class="menu-item">
-      <span class="icono">💰</span>
-      Préstamos
-    </a>
-    <a href="cobros.html" class="menu-item">
-      <span class="icono">📅</span>
-      Cobros
-    </a>
-    <a href="reportes.html" class="menu-item activo">
-      <span class="icono">📈</span>
-      Reportes
-    </a>
-  </nav>
+  <a href="index.html" class="menu-item">
+    <span class="icono">💰</span>
+    Préstamos
+  </a>
+  <a href="cobros.html" class="menu-item">
+    <span class="icono">📅</span>
+    Cobros
+  </a>
+  <a href="reportes.html" class="menu-item">
+    <span class="icono">📈</span>
+    Reportes
+  </a>
+  <a href="cobradores.html" class="menu-item">
+    <span class="icono">👷</span>
+    Equipo
+  </a>
+</nav>
 
   <script>
+    var sesion = JSON.parse(localStorage.getItem('sesion') || 'null');
+if (!sesion) window.location.href = 'login.html';
 
     // Fecha de hoy
     var hoy = new Date();
