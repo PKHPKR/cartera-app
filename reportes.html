@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarteraApp – Reportes</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#00d4a0">
+  <style>
+    /* Barra de estadística */
+    .stat-barra {
+      background: #2a2f3a;
+      border-radius: 6px;
+      height: 8px;
+      margin-top: 6px;
+    }
+
+    .stat-fill {
+      height: 8px;
+      border-radius: 6px;
+      transition: width 0.5s;
+    }
+
+    .stat-item {
+      margin-bottom: 16px;
+    }
+
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .stat-nombre {
+      font-weight: 600;
+    }
+
+    .stat-valor {
+      color: #00d4a0;
+      font-weight: 700;
+    }
+
+    /* Tabla simple */
+    .tabla-reporte {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .tabla-reporte th {
+      font-size: 10px;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 8px 0;
+      border-bottom: 1px solid #2a2f3a;
+      text-align: left;
+    }
+
+    .tabla-reporte td {
+      padding: 10px 0;
+      border-bottom: 1px solid #2a2f3a;
+      font-size: 13px;
+    }
+
+    .tabla-reporte tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Gráfica de barras manual */
+    .grafica {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 120px;
+      margin-top: 12px;
+      padding-bottom: 24px;
+      position: relative;
+      border-bottom: 1px solid #2a2f3a;
+    }
+
+    .barra-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+    }
+
+    .barra-rect {
+      width: 100%;
+      border-radius: 4px 4px 0 0;
+      min-height: 4px;
+      transition: height 0.5s;
+    }
+
+    .barra-label {
+      font-size: 9px;
+      color: #6b7280;
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    .barra-monto {
+      font-size: 9px;
+      color: #00d4a0;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    /* Resumen grande */
+    .resumen-grande {
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .resumen-numero {
+      font-size: 24px;
+      font-weight: 700;
+      color: #00d4a0;
+      line-height: 1;
+    }
+
+    .resumen-label {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 6px;
+    }
+
+    .divisor {
+  display: none;
+}
+
+    .resumen-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <h1>📈 Reportes</h1>
+    <span class="header-sub" id="fechaHoy"></span>
+  </div>
+
+  <div class="container">
+
+    <!-- RESUMEN GENERAL -->
+    <div class="card">
+      <h2>💼 Resumen general</h2>
+      <div class="resumen-fila">
+        <div class="resumen-grande">
+          <div class="resumen-numero" id="res-prestado">$0</div>
+          <div class="resumen-label">Total prestado</div>
+        </div>
+        <div class="divisor"></div>
+        <div class="resumen-grande">
+          <div class="resumen-numero" style="color:#ff6b35" id="res-cobrado">$0</div>
+          <div class="resumen-label">Total cobrado</div>
+        </div>
+        <div class="divisor"></div>
+        <div class="resumen-grande">
+          <div class="resumen-numero" style="color:#ff4560" id="res-pendiente">$0</div>
+          <div class="resumen-label">Pendiente</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Clientes activos</div>
+        <div class="kpi-valor verde" id="kpi-activos">0</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Préstamos terminados</div>
+        <div class="kpi-valor naranja" id="kpi-terminados">0</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">En mora</div>
+        <div class="kpi-valor rojo" id="kpi-mora">0</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Interés generado</div>
+        <div class="kpi-valor amarillo" id="kpi-interes">$0</div>
+      </div>
+    </div>
+
+    <!-- GRÁFICA DE COBROS POR DÍA -->
+    <div class="card">
+      <h2>📊 Cobros últimos 7 días</h2>
+      <div class="grafica" id="grafica7dias">
+        <div class="vacio" style="width:100%">Sin datos de cobros aún</div>
+      </div>
+    </div>
+
+    <!-- RANKING DE CLIENTES -->
+    <div class="card">
+      <h2>🏆 Clientes por monto prestado</h2>
+      <div id="rankingClientes">
+        <div class="vacio">
+          <div class="vacio-icono">📭</div>
+          Sin clientes registrados
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENTES EN MORA -->
+    <div class="card">
+      <h2>⚠️ Clientes en mora</h2>
+      <div id="clientesMora">
+        <div class="vacio">Sin clientes en mora</div>
+      </div>
+    </div>
+
+    <!-- TABLA DETALLE -->
+    <div class="card">
+      <h2>📋 Detalle por cliente</h2>
+      <div id="tablaDetalle">
+        <div class="vacio">Sin préstamos registrados</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MENÚ INFERIOR -->
+  <nav class="menu-inferior">
+    <a href="index.html" class="menu-item">
+      <span class="icono">💰</span>
+      Préstamos
+    </a>
+    <a href="cobros.html" class="menu-item">
+      <span class="icono">📅</span>
+      Cobros
+    </a>
+    <a href="reportes.html" class="menu-item activo">
+      <span class="icono">📈</span>
+      Reportes
+    </a>
+  </nav>
+
+  <script>
+
+    // Fecha de hoy
+    var hoy = new Date();
+    document.getElementById('fechaHoy').textContent =
+      hoy.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    function obtenerPrestamos() {
+      var guardados = localStorage.getItem('prestamos');
+      return guardados ? JSON.parse(guardados) : [];
+    }
+
+    function formatoPeso(numero) {
+      if (numero === 0) return '$0';
+      return '$' + Math.round(numero).toLocaleString('es-CO');
+    }
+
+    function diasSinPagar(p) {
+      if (!p.ultimoPago) return 0;
+      var ultimo = new Date(p.ultimoPago);
+      var ahora  = new Date();
+      return Math.floor((ahora - ultimo) / (1000 * 60 * 60 * 24));
+    }
+
+    // ------------------------------------------------
+    // FUNCIÓN PRINCIPAL
+    // ------------------------------------------------
+    function cargarReportes() {
+      var listado = obtenerPrestamos();
+
+      if (listado.length === 0) return;
+
+      // Variables acumuladoras
+      var totalPrestado  = 0;
+      var totalCobrado   = 0;
+      var totalPendiente = 0;
+      var totalInteres   = 0;
+      var activos        = 0;
+      var terminados     = 0;
+      var enMora         = 0;
+
+      for (var i = 0; i < listado.length; i++) {
+        var p = listado[i];
+
+        totalPrestado += p.monto;
+        totalInteres  += p.monto * (p.tasa / 100);
+
+        var cobrado   = p.pagos * p.cuota;
+        var pendiente = p.total - cobrado;
+
+        totalCobrado   += cobrado;
+        totalPendiente += pendiente;
+
+        if (p.pagos >= p.plazo) {
+          terminados++;
+        } else {
+          activos++;
+          if (diasSinPagar(p) >= 1) enMora++;
+        }
+      }
+
+      // Resumen general
+      document.getElementById('res-prestado').textContent  = formatoPeso(totalPrestado);
+      document.getElementById('res-cobrado').textContent   = formatoPeso(totalCobrado);
+      document.getElementById('res-pendiente').textContent = formatoPeso(totalPendiente);
+
+      // KPIs
+      document.getElementById('kpi-activos').textContent    = activos;
+      document.getElementById('kpi-terminados').textContent = terminados;
+      document.getElementById('kpi-mora').textContent       = enMora;
+      document.getElementById('kpi-interes').textContent    = formatoPeso(totalInteres);
+
+      // Gráfica 7 días
+      mostrarGrafica(listado);
+
+      // Ranking clientes
+      mostrarRanking(listado);
+
+      // Clientes en mora
+      mostrarMora(listado);
+
+      // Tabla detalle
+      mostrarTabla(listado);
+    }
+
+
+    // ------------------------------------------------
+    // GRÁFICA DE COBROS ÚLTIMOS 7 DÍAS
+    // ------------------------------------------------
+    function mostrarGrafica(listado) {
+      // Construimos un mapa de cobros por día
+      var cobrosXdia = {};
+
+      // Últimos 7 días
+      for (var d = 6; d >= 0; d--) {
+        var fecha = new Date();
+        fecha.setDate(fecha.getDate() - d);
+        var key = fecha.toLocaleDateString('es-CO');
+        cobrosXdia[key] = 0;
+      }
+
+      // Sumamos cobros del historial de cada préstamo
+      for (var i = 0; i < listado.length; i++) {
+        var p = listado[i];
+        if (!p.historial) continue;
+        for (var j = 0; j < p.historial.length; j++) {
+          var h = p.historial[j];
+          if (cobrosXdia.hasOwnProperty(h.fecha)) {
+            cobrosXdia[h.fecha] += h.monto;
+          }
+        }
+      }
+
+      var dias   = Object.keys(cobrosXdia);
+      var montos = Object.values(cobrosXdia);
+      var maximo = Math.max.apply(null, montos) || 1;
+
+      // Si no hay cobros
+      if (maximo === 0) return;
+
+      var html = '';
+      for (var k = 0; k < dias.length; k++) {
+        var pct    = Math.round((montos[k] / maximo) * 100);
+        var label  = dias[k].split('/').slice(0,2).join('/'); // dd/mm
+        var color  = montos[k] > 0 ? '#00d4a0' : '#2a2f3a';
+
+        html += '<div class="barra-col">';
+        if (montos[k] > 0) {
+          html += '<div class="barra-monto">' + formatoPeso(montos[k]).replace('$','') + '</div>';
+        } else {
+          html += '<div class="barra-monto" style="color:#2a2f3a;">—</div>';
+        }
+        html += '<div class="barra-rect" style="background:' + color + '; height:' + pct + '%;"></div>';
+        html += '<div class="barra-label">' + label + '</div>';
+        html += '</div>';
+      }
+
+      document.getElementById('grafica7dias').innerHTML = html;
+    }
+
+
+    // ------------------------------------------------
+    // RANKING DE CLIENTES
+    // ------------------------------------------------
+    function mostrarRanking(listado) {
+      var contenedor = document.getElementById('rankingClientes');
+
+      // Ordenamos de mayor a menor monto
+      var ordenado = listado.slice().sort(function(a, b) {
+        return b.monto - a.monto;
+      });
+
+      var maximo = ordenado[0].monto || 1;
+      var html   = '';
+
+      for (var i = 0; i < ordenado.length; i++) {
+        var p   = ordenado[i];
+        var pct = Math.round((p.monto / maximo) * 100);
+        var color = i === 0 ? '#f5c842' : i === 1 ? '#6b7280' : '#ff6b35';
+
+        html += '<div class="stat-item">';
+        html +=   '<div class="stat-header">';
+        html +=     '<span class="stat-nombre">' + (i+1) + '. ' + p.nombre + '</span>';
+        html +=     '<span class="stat-valor">' + formatoPeso(p.monto) + '</span>';
+        html +=   '</div>';
+        html +=   '<div class="stat-barra">';
+        html +=     '<div class="stat-fill" style="background:' + color + '; width:' + pct + '%;"></div>';
+        html +=   '</div>';
+        html += '</div>';
+      }
+
+      contenedor.innerHTML = html;
+    }
+
+
+    // ------------------------------------------------
+    // CLIENTES EN MORA
+    // ------------------------------------------------
+    function mostrarMora(listado) {
+      var contenedor = document.getElementById('clientesMora');
+
+      var enMora = listado.filter(function(p) {
+        return p.pagos < p.plazo && diasSinPagar(p) >= 1;
+      });
+
+      if (enMora.length === 0) {
+        contenedor.innerHTML = '<div class="vacio">✅ Ningún cliente en mora</div>';
+        return;
+      }
+
+      // Ordenamos por más días sin pagar
+      enMora.sort(function(a, b) {
+        return diasSinPagar(b) - diasSinPagar(a);
+      });
+
+      var html = '';
+      for (var i = 0; i < enMora.length; i++) {
+        var p    = enMora[i];
+        var dias = diasSinPagar(p);
+        var deuda = (p.plazo - p.pagos) * p.cuota;
+
+        html += '<div class="lista-item">';
+        html +=   '<div>';
+        html +=     '<div class="lista-item-nombre">' + p.nombre + '</div>';
+        html +=     '<div class="lista-item-detalle">📱 ' + p.telefono + '</div>';
+        html +=     '<div class="lista-item-detalle">⏰ ' + dias + ' día(s) sin pagar</div>';
+        html +=   '</div>';
+        html +=   '<div class="lista-item-derecha">';
+        html +=     '<div class="lista-item-monto" style="color:#ff4560;">' + formatoPeso(deuda) + '</div>';
+        html +=     '<div style="font-size:10px;color:#6b7280;">saldo total</div>';
+        html +=   '</div>';
+        html += '</div>';
+      }
+
+      contenedor.innerHTML = html;
+    }
+
+
+    // ------------------------------------------------
+    // TABLA DETALLE
+    // ------------------------------------------------
+    function mostrarTabla(listado) {
+      var contenedor = document.getElementById('tablaDetalle');
+
+      var html = '<table class="tabla-reporte">';
+      html += '<thead><tr>';
+      html +=   '<th>Cliente</th>';
+      html +=   '<th>Monto</th>';
+      html +=   '<th>Avance</th>';
+      html +=   '<th>Estado</th>';
+      html += '</tr></thead><tbody>';
+
+      for (var i = 0; i < listado.length; i++) {
+        var p   = listado[i];
+        var pct = Math.round((p.pagos / p.plazo) * 100);
+        var estado, color;
+
+        if (p.pagos >= p.plazo) {
+          estado = 'Pagado'; color = '#00d4a0';
+        } else if (diasSinPagar(p) >= 1) {
+          estado = 'Mora'; color = '#ff4560';
+        } else {
+          estado = 'Al día'; color = '#f5c842';
+        }
+
+        html += '<tr>';
+        html +=   '<td><strong>' + p.nombre + '</strong></td>';
+        html +=   '<td>' + formatoPeso(p.monto) + '</td>';
+        html +=   '<td>' + pct + '%</td>';
+        html +=   '<td style="color:' + color + '; font-weight:700;">' + estado + '</td>';
+        html += '</tr>';
+      }
+
+      html += '</tbody></table>';
+      contenedor.innerHTML = html;
+    }
+
+
+    cargarReportes();
+  </script>
+
+</body>
+</html>
