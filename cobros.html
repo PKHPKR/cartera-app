@@ -74,7 +74,7 @@
 
   </div>
 
-  <<nav class="menu-inferior">
+  <nav class="menu-inferior">
   <a href="index.html" class="menu-item">
     <span class="icono">💰</span>
     Préstamos
@@ -115,11 +115,20 @@ if (!sesion) window.location.href = 'login.html';
     }
 
     // Calcula cuántos días lleva sin pagar
+    // Si nunca ha pagado, contamos desde la fecha en que se creó el préstamo
     function diasSinPagar(p) {
-      if (!p.ultimoPago) return 0;
-      var ultimo = new Date(p.ultimoPago);
-      var ahora  = new Date();
-      return Math.floor((ahora - ultimo) / (1000 * 60 * 60 * 24));
+      var referencia;
+      if (p.ultimoPago) {
+        referencia = new Date(p.ultimoPago);
+      } else if (p.fecha) {
+        // p.fecha viene en formato "D/M/YYYY" (es-CO)
+        var partes = p.fecha.split('/');
+        referencia = new Date(partes[2], partes[1] - 1, partes[0]);
+      } else {
+        return 0;
+      }
+      var ahora = new Date();
+      return Math.floor((ahora - referencia) / (1000 * 60 * 60 * 24));
     }
 
     function mostrarCobros() {
@@ -138,10 +147,8 @@ if (!sesion) window.location.href = 'login.html';
       }
 
       var html = '';
-      for (var i = 0; i < listado.length; i++) {
-        var p = listado[i];
-        if (p.pagos >= p.plazo) continue;
-
+      for (var i = 0; i < activos.length; i++) {
+        var p = activos[i];
         var restante   = p.plazo - p.pagos;
         var porcentaje = Math.round((p.pagos / p.plazo) * 100);
         var dias       = diasSinPagar(p);

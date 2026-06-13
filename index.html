@@ -99,7 +99,7 @@
 
   <!-- MENÚ INFERIOR DE NAVEGACIÓN -->
   <nav class="menu-inferior">
-  <a href="index.html" class="menu-item">
+  <a href="index.html" class="menu-item activo">
     <span class="icono">💰</span>
     Préstamos
   </a>
@@ -120,6 +120,7 @@
   <script>
     var sesion = JSON.parse(localStorage.getItem('sesion') || 'null');
 if (!sesion) window.location.href = 'login.html';
+if (sesion && sesion.rol !== 'admin') window.location.href = 'cobros.html';
     function calcular() {
       var monto = parseFloat(document.getElementById('monto').value) || 0;
       var plazo = parseFloat(document.getElementById('plazo').value) || 0;
@@ -231,7 +232,7 @@ if (!sesion) window.location.href = 'login.html';
   </script>
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js');
+  navigator.serviceWorker.register('./sw.js');
   }
 </script>
 </body>

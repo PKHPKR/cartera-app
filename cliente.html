@@ -217,7 +217,7 @@
       </button>
     </div>
 
-    <div class="btns-fila" style="margin-top:0;">
+    <div class="btns-fila" style="margin-top:0;" id="filaAdmin">
       <button class="btn btn-gris" onclick="abrirEdicion()">
         ✏️ Editar datos
       </button>
@@ -285,6 +285,20 @@
   </a>
 </nav>
   <script>
+
+    // ------------------------------------------------
+    // VERIFICAR SESIÓN
+    // ------------------------------------------------
+    var sesion = JSON.parse(localStorage.getItem('sesion') || 'null');
+    if (!sesion) {
+      window.location.href = 'login.html';
+    }
+
+    // Solo el admin puede editar o eliminar clientes
+    if (sesion && sesion.rol !== 'admin') {
+      var filaAdmin = document.getElementById('filaAdmin');
+      if (filaAdmin) filaAdmin.style.display = 'none';
+    }
 
     // ------------------------------------------------
     // LEER EL ID DEL CLIENTE DESDE LA URL
@@ -517,6 +531,7 @@
     // ELIMINAR CLIENTE
     // ------------------------------------------------
     function confirmarEliminar() {
+      if (sesion.rol !== 'admin') { alert('No tienes permiso para eliminar clientes.'); return; }
       var listado = obtenerPrestamos();
       var p = listado.find(function(x) { return x.id === clienteId; });
       if (!p) return;

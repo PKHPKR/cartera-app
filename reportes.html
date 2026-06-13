@@ -153,8 +153,16 @@
     }
 
     function diasSinPagar(p) {
-      if (!p.ultimoPago) return 0;
-      return Math.floor((new Date() - new Date(p.ultimoPago)) / (1000*60*60*24));
+      var referencia;
+      if (p.ultimoPago) {
+        referencia = new Date(p.ultimoPago);
+      } else if (p.fecha) {
+        var partes = p.fecha.split('/');
+        referencia = new Date(partes[2], partes[1] - 1, partes[0]);
+      } else {
+        return 0;
+      }
+      return Math.floor((new Date() - referencia) / (1000*60*60*24));
     }
 
     function cargarReportes() {
@@ -213,6 +221,10 @@
     }
 
     function mostrarRanking(listado) {
+      if (listado.length === 0) {
+        document.getElementById('rankingClientes').innerHTML = '<div class="vacio"><div class="vacio-icono">📭</div>Sin clientes registrados</div>';
+        return;
+      }
       var ord=listado.slice().sort(function(a,b){return b.monto-a.monto;});
       var max=ord[0].monto||1, html='';
       for (var i=0;i<ord.length;i++) {
@@ -280,6 +292,9 @@
     function enviarMasivo() {
       var mora=obtenerPrestamos().filter(function(p){return p.pagos<p.plazo&&diasSinPagar(p)>=1;});
       if (mora.length===0){alert('No hay clientes en mora.');return;}
+      if (mora.length>1) {
+        alert('Se abrirán ' + mora.length + ' ventanas de WhatsApp, una por cada cliente. Si tu navegador bloquea las ventanas emergentes, permítelas para este sitio.');
+      }
       for (var i=0;i<mora.length;i++){
         (function(p,d){
           setTimeout(function(){enviarWhatsapp(p.id);},d);
@@ -341,7 +356,7 @@
       var v=window.open('','_blank');
       v.document.write(c);
       v.document.close();
-      v.onload=function(){v.print();};
+      setTimeout(function(){v.print();}, 500);
     }
 
     cargarReportes();
